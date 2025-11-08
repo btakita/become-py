@@ -11,7 +11,7 @@ pip install become
 ### Example usage
 
 ```python
-from become import be, be_singleton
+from become import be, be_class
 
 hello = be(lambda ctx: "Hello")
 world = be(lambda ctx: "World")

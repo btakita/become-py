@@ -8,7 +8,7 @@ The core concept revolves around 'Be' objects that lazily evaluate their values
 only when needed, storing results in a context dictionary for efficient reuse.
 """
 
-from .be import Be, be, be_singleton
+from .be import Be, be, be_class
 
 __version__ = "0.1.0"
-__all__ = ["Be", "be", "be_singleton"]
+__all__ = ["Be", "be", "be_class"]

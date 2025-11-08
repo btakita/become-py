@@ -1,6 +1,6 @@
-from typing import Callable, Generic, Optional, TypeVar
+from typing import Any, Callable, Dict, Generic, Optional, Type, TypeVar
 
-__all__ = ["Be", "be", "be_singleton"]
+__all__ = ["Be", "be", "be_class"]
 
 T = TypeVar("T")
 
@@ -31,36 +31,61 @@ class be(Be[T]):
 
     Usage:
     ```
-    be_hello = be(lambda ctx: "Hello")
+    hello = be(lambda ctx: "Hello")
+    world = be(lambda ctx: "World")
 
-    be_hello_world = be(lambda ctx: be_hello(ctx) + " World!)
+    greeting = be(lambda ctx: f"{hello(ctx)} {world(ctx)}!")
+
+    ctx = {}
+    greeting(ctx) # Hello World!
     ```
     """
     def __init__(self, callable: Callable[[dict], T]) -> None:
         self.callable = callable
 
-class be_singleton(Be[T]):
+class Meta_be_class(type):
+    """Metaclass that enables singleton behavior and direct calling with ctx."""
+
+    _instances: Dict[Type, Any] = {}
+
+    def __call__(cls, ctx: dict) -> Any:
+        """Allow calling the class directly with ctx: be_foo(ctx)"""
+        if cls not in cls._instances:
+            # Create the singleton instance
+            instance = super(Meta_be_class, cls).__call__()
+            cls._instances[cls] = instance
+
+        # Call the singleton instance with the context
+        return cls._instances[cls](ctx)
+
+
+class be_class(Be[T], metaclass=Meta_be_class):
     """
     A Be that is a singleton. callable is defined as a method.
+    Uses a metaclass to enable direct calling with context.
 
     Usage:
     ```
-    class be_hello(be_singleton[int]):
-        def callable(self, ctx: dict) -> int:
+    class hello(be_class[str]):
+        def callable(self, ctx: dict) -> str:
             return "Hello"
 
-    class be_hello_world(be_singleton[int]):
-        def callable(self, ctx: dict) -> int:
-            return be_hello(ctx) + " World!
+    class world(be_class[str]):
+        def callable(self, ctx: dict) -> str:
+            return "World!"
+
+    class greeting(be_class[str]):
+        def callable(self, ctx: dict) -> str:
+            return f"{hello(ctx)} {world(ctx)}!"
+
+    ctx = {}
+    result = greeting(ctx)  # Hello World!
     ```
     """
-    instance: Optional[Be[T]] = None
 
-    def __new__(cls, ctx: dict) -> T:
-        if cls.instance is None:
-            cls.instance = super().__new__(cls)
-
-        return cls.instance(ctx)
+    def __init__(self) -> None:
+        # Initialize without arguments since the metaclass handles singleton creation
+        pass
 
     def callable(self, ctx: dict) -> T:
         raise NotImplementedError
