@@ -1,12 +1,12 @@
 from typing import Callable, Generic, Optional, TypeVar
 
 
-__all__ = ["Be", "be"]
+__all__ = ["Cell", "cell"]
 
 T = TypeVar("T")
 
 
-class Be(Generic[T]):
+class Cell(Generic[T]):
     """
     Base class for a lazy be Callable. Wraps a callable implementation field.
 
@@ -29,21 +29,23 @@ class Be(Generic[T]):
         return self in ctx
 
 
-class be(Be[T]):
+class cell(Cell[T]):
     """
     A Be that can be initialized with the callable as an argument.
 
     Usage:
     ```
-    @be
+    from lazily import cell
+
+    @cell
     def hello(ctx: dict) -> str:
         return "Hello"
 
-    @be
+    @cell
     def world(ctx: dict) -> str:
         return "World"
 
-    greeting = be(lambda ctx: f"{hello(ctx)} {world(ctx)}!")
+    greeting = cell(lambda ctx: f"{hello(ctx)} {world(ctx)}!")
 
     ctx = {}
     greeting(ctx)  # Hello World!
