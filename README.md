@@ -1,22 +1,31 @@
 # lazily
+
 A Python library for lazy evaluation with context caching.
 
 ## Installation
-pip install lazily
 
-## Usage
-```python
+```
+pip install lazily
 ```
 
 ### Example usage
 
 ```python
-from lazily import be, be_class
+from lazily import be
 
-hello = be(lambda ctx: "Hello")
-world = be(lambda ctx: "World")
+
+@be
+def hello(ctx: dict) -> str:
+    return "Hello"
+
+
+@be
+def world(ctx: dict) -> str:
+    return "World"
+
+
 greeting = be(lambda ctx: f"{hello(ctx)} {world(ctx)}!")
 
 ctx = {}
-print(greeting(ctx))  # "Hello World!"
+greeting(ctx)  # Hello World!
 ```
