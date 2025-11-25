@@ -1,3 +1,7 @@
+## 0.6.0
+
+* cell() is supported with a default value of None.
+
 ## 0.5.0
 
 * Slot now support subscriptions. Resetting a slot will also reset it's descendents.

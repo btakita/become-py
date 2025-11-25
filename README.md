@@ -13,56 +13,61 @@ pip install lazily
 ```python
 from lazily import cell, slot
 
-
-@cell
-def name(ctx: dict) -> str:
-    return "World"
+# Cells hold a value that can be updated.
+name = cell()
 
 
+# Slots are functions that depend on cells and other slots.
 @slot
 def greeting(ctx: dict) -> str:
     print("Calculating greeting...")
     return f"Hello, {name(ctx).value}!"
 
+
+# A cell can also have a default value.
 @cell
 def response(ctx: dict) -> str:
     return "How are you?"
+
 
 @slot
 def greeting_and_response(ctx: dict) -> str:
     print("Calculating greeting_and_response...")
     return f"{greeting(ctx)} {response(ctx).value}"
 
+
 ctx = {}
 
+name(ctx).value = "World"
+
 # First access: runs the function
-greeting(ctx)
+print(greeting(ctx))
 # Calculating greeting...
 # 'Hello, World!'
 
 # Second access: uses cache (no print)
-greeting(ctx)
+print(greeting(ctx))
 # 'Hello, World!'
 
 # Dependencies also access cached values
-greeting_and_response(ctx)
+print(greeting_and_response(ctx))
 # Calculating greeting_and_response...
 # 'Hello, World! How are you?'
 
 # Dependencies also also cached
-greeting_and_response(ctx)
+print(greeting_and_response(ctx))
 # 'Hello, World! How are you?'
 
 # Update cell: invalidates cache
 name(ctx).value = "Lazily"
 
 # Access again: re-runs the function
-greeting_and_response(ctx)
+print(greeting_and_response(ctx))
 # Calculating greeting_and_response...
 # Calculating greeting...
 # 'Hello, Lazily! How are you?'
 
 # Another access: uses cache
-greeting_and_response(ctx)
+print(greeting_and_response(ctx))
 # 'Hello, Lazily! How are you?'
 ```

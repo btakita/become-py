@@ -52,3 +52,17 @@ class TestCell:
             "greeting_and_response",
             "greeting",
         ]
+
+    def test_empty_cell(self) -> None:
+        empty_cell = cell()
+
+        @slot
+        def cell_dependency(ctx: dict) -> str:
+            return f"empty_cell={empty_cell(ctx).value}"
+
+        ctx = {}
+        assert empty_cell(ctx).value == None
+        assert cell_dependency(ctx) == "empty_cell=None"
+        empty_cell(ctx).value = "test"
+        assert empty_cell(ctx).value == "test"
+        assert cell_dependency(ctx) == "empty_cell=test"

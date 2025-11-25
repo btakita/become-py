@@ -46,6 +46,8 @@ class Cell(Generic[T]):
         for subscriber in self._subscribers:
             subscriber(self.ctx, self._value)
 
+none_callable = lambda ctx: None
+
 class cell(BaseSlot[Cell[T]]):
     """
     
@@ -86,6 +88,6 @@ class cell(BaseSlot[Cell[T]]):
     # 'Hello, Lazily!'
     ```
     """
-    def __init__(self, callable: LazilyCallable[T]) -> None:
+    def __init__(self, callable: LazilyCallable[T] = none_callable) -> None:
         self.callable = lambda ctx: Cell(ctx, callable(ctx))
 
