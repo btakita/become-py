@@ -1,3 +1,7 @@
+## 0.5.0
+
+* Slot now support subscriptions. Resetting a slot will also reset it's descendents.
+
 ## 0.4.0
 
 * BREAKING CHANGE: Rename Cell to Slot and @cell to @slot.

@@ -8,8 +8,9 @@ The core concept revolves around 'Be' objects that lazily evaluate their values
 only when needed, storing results in a context dictionary for efficient reuse.
 """
 from .cell import Cell, cell
-from .slot import BaseSlot, LazilyCallable, Slot, slot
+from .slot import BaseSlot, Slot, slot
+from .types import LazilyCallable
 
 
-__version__ = "0.4.1"
+__version__ = "0.5.0"
 __all__ = ["BaseSlot", "Cell", "LazilyCallable", "Slot", "cell", "slot"]

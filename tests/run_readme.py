@@ -1,16 +1,3 @@
-# lazily
-
-A Python library for lazy evaluation with context caching.
-
-## Installation
-
-```
-pip install lazily
-```
-
-### Example usage
-
-```python
 from lazily import cell, slot
 
 
@@ -36,33 +23,31 @@ def greeting_and_response(ctx: dict) -> str:
 ctx = {}
 
 # First access: runs the function
-greeting(ctx)
+print(greeting(ctx))
 # Calculating greeting...
 # 'Hello, World!'
 
 # Second access: uses cache (no print)
-greeting(ctx)
+print(greeting(ctx))
 # 'Hello, World!'
 
 # Dependencies also access cached values
-greeting_and_response(ctx)
+print(greeting_and_response(ctx))
 # Calculating greeting_and_response...
 # 'Hello, World! How are you?'
 
 # Dependencies also also cached
-greeting_and_response(ctx)
+print(greeting_and_response(ctx))
 # 'Hello, World! How are you?'
 
 # Update cell: invalidates cache
 name(ctx).value = "Lazily"
+print("Updated name to Lazily.")
 
 # Access again: re-runs the function
-greeting_and_response(ctx)
-# Calculating greeting_and_response...
+print(greeting_and_response(ctx))
 # Calculating greeting...
+# Calculating greeting_and_response...
 # 'Hello, Lazily! How are you?'
-
-# Another access: uses cache
-greeting_and_response(ctx)
+print(greeting_and_response(ctx))
 # 'Hello, Lazily! How are you?'
-```
