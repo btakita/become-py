@@ -1,56 +1,93 @@
-from typing import Callable, Generic, Optional, TypeVar
+from typing import Any, Generic, Protocol, TypeVar
+
+from .slot import BaseSlot, LazilyCallable, callable_stack
 
 
-__all__ = ["Cell", "cell"]
+__all__ = ["Cell", "cell", "slot"]
+
+
 
 T = TypeVar("T")
 
+class LazilySubscriber[T](Protocol):
+    def __call__[**P](self, ctx: dict, value: T) -> Any: ...
 
 class Cell(Generic[T]):
     """
-    Base class for a lazy be Callable. Wraps a callable implementation field.
-
-    If the be is not in the ctx argument, it will be evaluated and stored in the ctx.
+    A subscribable that can be used with Slots.
     """
+    __slots__ = ("_subscribers", "_value", "ctx", "name")
 
-    callable: Callable[[dict], T]
+    def __init__(self, ctx: dict, initial_value: T) -> None:
+        self.ctx = ctx
+        self._value = initial_value
+        self._subscribers = set()
 
-    def __call__(self, ctx: dict) -> T:
-        if self in ctx:
-            return ctx[self]
-        else:
-            ctx[self] = self.callable(ctx)
-            return ctx[self]
+    @property
+    def value(self) -> T:
+        if len(callable_stack) > 0:
+            callable = callable_stack[-1]
+            self.subscribe(lambda ctx, value : callable.reset(self.ctx))
+        return self._value
 
-    def get(self, ctx: dict) -> Optional[T]:
-        return ctx.get(self)
+    @value.setter
+    def value(self, value: T) -> None:
+        _value = self._value
+        self._value = value
+        if self._value != _value:
+            for subscriber in self._subscribers:
+                subscriber(self.ctx, self._value)
 
-    def is_in(self, ctx: dict) -> bool:
-        return self in ctx
+    def touch(self) -> None:
+        for subscriber in self._subscribers:
+            subscriber(self.ctx, self._value)
 
+    def __call__(self) -> T:
+        return self.value
 
-class cell(Cell[T]):
+    def subscribe(self, subscriber: LazilySubscriber[T]) -> None:
+        self._subscribers.add(subscriber)
+
+class cell(BaseSlot[Cell[T]]):
     """
-    A Be that can be initialized with the callable as an argument.
-
-    Usage:
-    ```
-    from lazily import cell
-
+    
+    
+    ==Example==
+    ```python
+    from lazily import cell, slot
+    
+    
     @cell
-    def hello(ctx: dict) -> str:
-        return "Hello"
-
-    @cell
-    def world(ctx: dict) -> str:
+    def name(ctx: dict) -> str:
         return "World"
-
-    greeting = cell(lambda ctx: f"{hello(ctx)} {world(ctx)}!")
-
+    
+    
+    @slot
+    def greeting(ctx: dict) -> str:
+        print("Calculating...")
+        return f"Hello, {name(ctx).value}!"
+    
+    
     ctx = {}
-    greeting(ctx)  # Hello World!
+    
+    # First access: runs the function
+    greeting(ctx)
+    # Calculating...
+    # 'Hello, World!'
+    
+    # Second access: uses cache (no print)
+    greeting(ctx)
+    # 'Hello, World!'
+    
+    # Update cell: invalidates cache
+    name(ctx).value = "Lazily"
+    
+    # Access again: re-runs the function
+    greeting(ctx)
+    # Calculating...
+    # 'Hello, Lazily!'
     ```
     """
+    def __init__(self, callable: LazilyCallable[T]) -> None:
+        self.callable = lambda ctx: Cell(ctx, callable(ctx))
 
-    def __init__(self, callable: Callable[[dict], T]) -> None:
-        self.callable = callable

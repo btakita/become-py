@@ -11,21 +11,36 @@ pip install lazily
 ### Example usage
 
 ```python
-from lazily import cell
+from lazily import cell, slot
 
 
 @cell
-def hello(ctx: dict) -> str:
-    return "Hello"
-
-
-@cell
-def world(ctx: dict) -> str:
+def name(ctx: dict) -> str:
     return "World"
 
 
-greeting = cell(lambda ctx: f"{hello(ctx)} {world(ctx)}!")
+@slot
+def greeting(ctx: dict) -> str:
+    print("Calculating...")
+    return f"Hello, {name(ctx).value}!"
+
 
 ctx = {}
-greeting(ctx)  # Hello World!
+
+# First access: runs the function
+greeting(ctx)
+# Calculating...
+# 'Hello, World!'
+
+# Second access: uses cache (no print)
+greeting(ctx)
+# 'Hello, World!'
+
+# Update cell: invalidates cache
+name(ctx).value = "Lazily"
+
+# Access again: re-runs the function
+greeting(ctx)
+# Calculating...
+# 'Hello, Lazily!'
 ```
