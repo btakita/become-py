@@ -8,8 +8,6 @@ T = TypeVar("T")
 class LazilyCallable(Protocol[T]):
     def __call__(self, ctx: dict) -> T: ...
 
-callable_stack: list[Slot] = []
-
 class BaseSlot(Generic[T]):
     """
     Base class for a lazy slot Callable. Wraps a callable implementation field.
@@ -54,6 +52,7 @@ class Slot(BaseSlot[T]):
                 callable_stack.pop()
             return ctx[self]
 
+callable_stack: list[Slot] = []
 
 class slot(Slot[T]):
     """

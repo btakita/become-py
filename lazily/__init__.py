@@ -11,5 +11,5 @@ from .cell import Cell, cell
 from .slot import BaseSlot, LazilyCallable, Slot, slot
 
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 __all__ = ["BaseSlot", "Cell", "LazilyCallable", "Slot", "cell", "slot"]
