@@ -54,7 +54,7 @@ print(greeting_and_response(ctx))
 # Calculating greeting_and_response...
 # 'Hello, World! How are you?'
 
-# Dependencies also also cached
+# Dependencies also cached
 print(greeting_and_response(ctx))
 # 'Hello, World! How are you?'
 

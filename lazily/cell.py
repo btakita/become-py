@@ -1,15 +1,16 @@
-from typing import Any, Generic, Protocol, TypeVar
+from typing import Any, Callable, Generic, Protocol, TypeVar
 
-from .slot import BaseSlot, slot_stack
+from .slot import BaseSlot, Slot, slot_stack
 from .types import LazilyCallable
 
 
-__all__ = ["Cell", "cell"]
+__all__ = ["Cell", "cell", "cell_def"]
 
+C = TypeVar("C")
 T = TypeVar("T")
 
 class CellSubscriber[T](Protocol):
-    def __call__[**P](self, ctx: dict, value: T) -> Any: ...
+    def __call__(self, ctx: dict, value: T) -> Any: ...
 
 class Cell(Generic[T]):
     """
@@ -48,9 +49,9 @@ class Cell(Generic[T]):
 
 none_callable = lambda ctx: None
 
-class cell(BaseSlot[Cell[T]]):
+class cell(BaseSlot[dict, Cell[T]]):
     """
-    
+    Decorator for creating a slot that returns a Cell.
     
     ==Example==
     ```python
@@ -88,6 +89,48 @@ class cell(BaseSlot[Cell[T]]):
     # 'Hello, Lazily!'
     ```
     """
-    def __init__(self, callable: LazilyCallable[T] = none_callable) -> None:
-        self.callable = lambda ctx: Cell(ctx, callable(ctx))
+    def __init__(self, callable: LazilyCallable[dict, T] = none_callable) -> None:
+        super().__init__(lambda ctx: Cell(ctx, callable(ctx)))
 
+def cell_def(resolve_ctx: Callable[[C], T]) -> Callable[[Callable[[dict], T]], Slot[C, Cell[T]]]:
+    """
+
+    ==Example==
+    ```python
+    from lazily import cell, slot
+
+
+    @cell
+    def name(ctx: dict) -> str:
+        return "World"
+
+
+    @slot
+    def greeting(ctx: dict) -> str:
+        print("Calculating...")
+        return f"Hello, {name(ctx).value}!"
+
+
+    ctx = {}
+
+    # First access: runs the function
+    greeting(ctx)
+    # Calculating...
+    # 'Hello, World!'
+
+    # Second access: uses cache (no print)
+    greeting(ctx)
+    # 'Hello, World!'
+
+    # Update cell: invalidates cache
+    name(ctx).value = "Lazily"
+
+    # Access again: re-runs the function
+    greeting(ctx)
+    # Calculating...
+    # 'Hello, Lazily!'
+    ```
+    """
+    def outer(callable: LazilyCallable[dict, T]) -> Slot[C, Cell[T]]:
+        return Slot[C, T](lambda ctx: Cell(ctx, callable(ctx)), resolve_ctx)
+    return outer

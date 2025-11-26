@@ -148,7 +148,7 @@ class TestIntegration:
         def config(ctx: dict) -> dict:
             return {"api_url": "https://api.example.com", "timeout": 30}
 
-        class HttpClient(Slot[str]):
+        class HttpClient(Slot[dict, str]):
             def callable(self, ctx: dict) -> str:
                 _config = config(ctx)
                 return f"HttpClient({_config['api_url']}, timeout={_config['timeout']})"

@@ -1,3 +1,8 @@
+## 0.7.0
+
+* Add @slot_def and @cell_def decorators...which both take a resolve_ctx callable to resolve the ctx object.
+* Allows for calling a slot function with an object that contains the ctx, such as a Request or Graphene GraphQLResolveInfo.
+
 ## 0.6.0
 
 * cell() is supported with a default value of None.

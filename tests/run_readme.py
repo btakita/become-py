@@ -1,7 +1,10 @@
-from lazily import cell, slot
+from dataclasses import dataclass
+
+from lazily import cell, slot, slot_def
+
 
 # Cells hold a value that can be updated.
-name = cell()
+name = cell[str]()
 
 
 # Slots are functions that depend on cells and other slots.
@@ -16,15 +19,21 @@ def greeting(ctx: dict) -> str:
 def response(ctx: dict) -> str:
     return "How are you?"
 
+@dataclass
+class CustomCtxResolver:
+    ctx: dict
 
-@slot
+def resolve_ctx(resolver: CustomCtxResolver | dict) -> dict:
+    return resolver.ctx if isinstance(resolver, CustomCtxResolver) else resolver
+
+
+@slot_def(resolve_ctx)
 def greeting_and_response(ctx: dict) -> str:
     print("Calculating greeting_and_response...")
     return f"{greeting(ctx)} {response(ctx).value}"
 
-
 ctx = {}
-
+custom_ctx_resolver = CustomCtxResolver(ctx)
 name(ctx).value = "World"
 
 # First access: runs the function
@@ -41,8 +50,8 @@ print(greeting_and_response(ctx))
 # Calculating greeting_and_response...
 # 'Hello, World! How are you?'
 
-# Dependencies also also cached
-print(greeting_and_response(ctx))
+# Dependencies also cached
+print(greeting_and_response(custom_ctx_resolver))
 # 'Hello, World! How are you?'
 
 # Update cell: invalidates cache

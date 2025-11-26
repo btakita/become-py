@@ -1,9 +1,13 @@
-from typing import Any, Protocol, TypeVar
+from typing import Protocol, TypeVar
 
 
-__all__ = ["LazilyCallable"]
+__all__ = ["LazilyCallable", "ResolveCallable"]
 
+C = TypeVar("C")
 T = TypeVar("T")
 
-class LazilyCallable(Protocol[T]):
-    def __call__(self, ctx: dict) -> T: ...
+class LazilyCallable(Protocol[C, T]):
+    def __call__(self, ctx: C) -> T: ...
+
+class ResolveCallable(Protocol[C]):
+    def __call__(self, ctx: C) -> dict: ...

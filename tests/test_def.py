@@ -1,12 +1,10 @@
 from dataclasses import dataclass
 
-from lazily import Cell, cell, slot, slot_def
+from lazily import cell_def, slot_def
 
 
-class TestCell:
-    """Test the base cell class functionality."""
-
-    def test_cell_with_subscriber(self) -> None:
+class TestDef:
+    def test_def(self) -> None:
         @dataclass
         class CustomCtxResolver:
             ctx: dict
@@ -14,26 +12,26 @@ class TestCell:
         def resolve_ctx(resolver: CustomCtxResolver | dict) -> dict:
             return resolver.ctx if isinstance(resolver, CustomCtxResolver) else resolver
 
-        @slot
+        @slot_def(resolve_ctx)
         def slot_events(ctx: dict) -> list[str]:
             return []
 
-        @slot
-        def hello(ctx: dict) -> Cell[str]:
+        @cell_def(resolve_ctx)
+        def hello(ctx: dict) -> str:
             slot_events(ctx).append("hello")
-            return Cell(ctx, "Hello")
+            return "Hello"
 
-        @cell
+        @cell_def(resolve_ctx)
         def name(ctx: dict) -> str:
             slot_events(ctx).append("name")
             return "World"
 
-        @slot
+        @slot_def(resolve_ctx)
         def greeting(ctx: dict) -> str:
             slot_events(ctx).append("greeting")
             return f"{hello(ctx).value} {name(ctx).value}!"
 
-        @cell
+        @cell_def(resolve_ctx)
         def response(ctx: dict) -> str:
             return "How are you?"
 
@@ -47,11 +45,11 @@ class TestCell:
 
         assert ctx.get(greeting) is None
         assert slot_events(ctx) == []
-        assert greeting(ctx) == "Hello World!"
+        assert greeting(custom_ctx_resolver) == "Hello World!"
         assert slot_events(ctx) == ["greeting", "hello", "name"]
-        assert greeting_and_response(ctx) == "Hello World! How are you?"
+        assert greeting_and_response(custom_ctx_resolver) == "Hello World! How are you?"
         assert slot_events(ctx) == ["greeting", "hello", "name", "greeting_and_response"]
-        name(ctx).value = "You"
+        name(custom_ctx_resolver).value = "You"
         assert ctx.get(greeting) is None
         assert slot_events(ctx) == ["greeting", "hello", "name", "greeting_and_response"]
         assert greeting_and_response(custom_ctx_resolver) == "Hello You! How are you?"
@@ -64,16 +62,3 @@ class TestCell:
             "greeting",
         ]
 
-    def test_empty_cell(self) -> None:
-        empty_cell = cell()
-
-        @slot
-        def cell_dependency(ctx: dict) -> str:
-            return f"empty_cell={empty_cell(ctx).value}"
-
-        ctx = {}
-        assert empty_cell(ctx).value == None
-        assert cell_dependency(ctx) == "empty_cell=None"
-        empty_cell(ctx).value = "test"
-        assert empty_cell(ctx).value == "test"
-        assert cell_dependency(ctx) == "empty_cell=test"
